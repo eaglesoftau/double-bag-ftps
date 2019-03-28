@@ -82,7 +82,7 @@ class DoubleBagFTPS < Net::FTP
   def open_socket(host, port, defer_implicit_ssl = false)
     if defined? SOCKSSocket && ENV['SOCKS_SERVER']
       @passive = true
-      sock = SOCKSSocket.open(host, port)
+      # sock = SOCKSSocket.open(host, port) commented because doesn't work in ruby 2.4
     else
       sock = TCPSocket.open(host, port)
     end
