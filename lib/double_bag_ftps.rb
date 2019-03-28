@@ -5,7 +5,30 @@ begin
 rescue LoadError
 end
 
-class DoubleBagFTPS < Net::FTP
+class MyFTP < Net::FTP
+  FTP_PORT = 990
+
+  def connect(host, port = FTP_PORT)
+    synchronize do
+      @host = host
+      @bare_sock = open_socket(host, port)
+      begin
+        ssl_sock = start_tls_session(Socket.tcp(host, port))
+        @sock = BufferedSSLSocket.new(ssl_sock, read_timeout: @read_timeout)
+        voidresp
+        if @private_data_connection
+          voidcmd('PBSZ 0')
+          voidcmd('PROT P')
+        end
+      rescue OpenSSL::SSL::SSLError, Net::OpenTimeout
+        @sock.close
+        raise
+      end
+    end
+  end
+end
+
+class DoubleBagFTPS < MyFTP
   EXPLICIT = :explicit
   IMPLICIT = :implicit
   IMPLICIT_PORT = 990
@@ -58,8 +81,6 @@ class DoubleBagFTPS < Net::FTP
   #
   def connect(host, port = ftps_implicit? ? IMPLICIT_PORT : FTP_PORT)
     @hostname = host
-    @bare_sock = open_socket(host, port)
-    @sock = BufferedSocket.new(@bare_sock, read_timeout: @read_timeout)
     super
   end
 
