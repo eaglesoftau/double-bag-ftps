@@ -58,6 +58,7 @@ class DoubleBagFTPS < Net::FTP
   #
   def connect(host, port = ftps_implicit? ? IMPLICIT_PORT : FTP_PORT)
     @hostname = host
+    @bare_sock = open_socket(host, port)
     @sock = BufferedSocket.new(@bare_sock, read_timeout: @read_timeout)
     super
   end
